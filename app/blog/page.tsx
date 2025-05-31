@@ -1,3 +1,5 @@
+'use client';
+
 import { getAllContent } from '@/lib/mdx';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -5,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, ArrowRight, Search, TagIcon } from 'lucide-react';
 
-export default async function BlogIndex() {
+export default function BlogIndex() {
   const posts = getAllContent('blog');
 
   return (
