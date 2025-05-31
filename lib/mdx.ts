@@ -1,6 +1,11 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import matter from 'gray-matter';
+import { serialize } from 'next-mdx-remote/serialize';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypeHighlight from 'rehype-highlight';
+import remarkGfm from 'remark-gfm';
 
 const postsDirectory = join(process.cwd(), 'content/blog');
 
@@ -26,15 +31,27 @@ export function getPosts() {
   });
 }
 
-export function getPost(slug: string) {
+export async function getPost(slug: string) {
   try {
     const fullPath = join(postsDirectory, `${slug}.mdx`);
     const fileContents = readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
 
+    const mdxSource = await serialize(content, {
+      mdxOptions: {
+        remarkPlugins: [remarkGfm],
+        rehypePlugins: [
+          rehypeSlug,
+          [rehypeAutolinkHeadings, { behavior: 'append' }],
+          rehypeHighlight,
+        ],
+      },
+      parseFrontmatter: true,
+    });
+
     return {
       frontmatter: data,
-      content,
+      content: mdxSource,
     };
   } catch (e) {
     return null;
