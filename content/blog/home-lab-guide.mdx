@@ -1,0 +1,302 @@
+---
+title: "Building Your Home Lab: A Cybersecurity Practitioner's Guide"
+date: '2025-05-10'
+excerpt: 'Step-by-step guide to creating a comprehensive cybersecurity home lab for learning, testing, and skill development. From virtualization to network segmentation.'
+tags: ['Home Lab', 'Learning', 'Virtualization', 'Network Security']
+coverImage: '/static/images/blog-homelab.svg'
+---
+
+## Why Build a Home Lab?
+
+Every cybersecurity professional needs a safe environment to learn, experiment, and test new techniques. A home lab provides:
+
+- **Safe Learning Environment**: Break things without consequences
+- **Hands-on Experience**: Practice with real tools and scenarios
+- **Career Development**: Demonstrate practical skills to employers
+- **Research Platform**: Test new vulnerabilities and defenses
+
+## Planning Your Lab
+
+### Hardware Requirements
+
+You don't need enterprise-grade equipment. Here's what I recommend:
+
+**Minimum Setup:**
+- **CPU**: Intel i5/AMD Ryzen 5 or better
+- **RAM**: 32GB (more is better)
+- **Storage**: 1TB SSD + 2TB HDD
+- **Network**: Gigabit connection
+
+**Optimal Setup:**
+- **CPU**: Intel i7/AMD Ryzen 7 with virtualization support
+- **RAM**: 64GB DDR4
+- **Storage**: 2TB NVMe SSD + 4TB HDD
+- **Network**: Managed switch with VLAN support
+
+### Software Foundation
+
+```bash
+# Hypervisor options
+# Option 1: VMware Workstation Pro (paid, excellent performance)
+# Option 2: VirtualBox (free, good for beginners)
+# Option 3: Proxmox (free, enterprise-grade)
+
+# For Proxmox installation
+wget https://www.proxmox.com/en/downloads
+# Follow installation guide...
+```
+
+## Core Virtual Machines
+
+### 1. Kali Linux (Attack Platform)
+
+```bash
+# Essential tools to install after base Kali
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y \
+    bloodhound \
+    covenant \
+    empire \
+    metasploit-framework \
+    nuclei \
+    subfinder \
+    amass
+```
+
+### 2. Windows Domain Environment
+
+Set up a mini Active Directory:
+
+```powershell
+# Domain Controller setup
+Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
+Import-Module ADDSDeployment
+Install-ADDSForest -DomainName "lab.local" -SafeModeAdministratorPassword (ConvertTo-SecureString "P@ssw0rd123!" -AsPlainText -Force)
+```
+
+### 3. Vulnerable Applications
+
+Deploy intentionally vulnerable apps:
+
+- **DVWA**: Damn Vulnerable Web Application
+- **Metasploitable**: Vulnerable Linux distribution
+- **VulnHub VMs**: Community-created vulnerable systems
+- **HackTheBox VMs**: Retired boxes for practice
+
+## Network Segmentation
+
+### VLAN Configuration
+
+```bash
+# Example VLAN setup on pfSense
+# VLAN 10: Management (192.168.10.0/24)
+# VLAN 20: Victim Network (192.168.20.0/24)
+# VLAN 30: Attack Network (192.168.30.0/24)
+# VLAN 40: Monitoring (192.168.40.0/24)
+```
+
+### Firewall Rules
+
+```bash
+# pfSense rule examples
+# Block all inter-VLAN communication by default
+# Allow specific services as needed
+# Log all traffic for analysis
+```
+
+## Monitoring and Logging
+
+### Security Information and Event Management (SIEM)
+
+Set up **Wazuh** for centralized logging:
+
+```yaml
+# docker-compose.yml for Wazuh
+version: '3.7'
+services:
+  wazuh.manager:
+    image: wazuh/wazuh-manager:4.7.0
+    hostname: wazuh.manager
+    restart: always
+    ports:
+      - "1514:1514"
+      - "1515:1515"
+      - "514:514/udp"
+      - "55000:55000"
+    environment:
+      - INDEXER_URL=https://wazuh.indexer:9200
+      - INDEXER_USERNAME=admin
+      - INDEXER_PASSWORD=SecretPassword
+```
+
+### Network Monitoring
+
+Deploy **Security Onion** for network analysis:
+
+```bash
+# Security Onion installation
+wget https://github.com/Security-Onion-Solutions/securityonion/raw/master/VERIFY_ISO.md
+# Verify ISO integrity and install
+```
+
+## Practical Scenarios
+
+### 1. Active Directory Attacks
+
+Practice common AD attack techniques:
+
+```powershell
+# Kerberoasting
+Invoke-Kerberoast -OutputFormat Hashcat
+
+# ASREPRoasting  
+Get-ASREPHash -UserName "victim" -Domain "lab.local"
+
+# Golden Ticket Attack
+Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:lab.local /sid:S-1-5-21-... /krbtgt:HASH /ticket:golden.kirbi"'
+```
+
+### 2. Web Application Testing
+
+Set up vulnerable web apps:
+
+```bash
+# DVWA setup
+docker run --rm -it -p 80:80 vulnerables/web-dvwa
+
+# OWASP WebGoat
+docker run -p 8080:8080 -t webgoat/webgoat-8.0
+```
+
+### 3. Network Penetration Testing
+
+Practice network reconnaissance and exploitation:
+
+```bash
+# Network discovery
+nmap -sn 192.168.20.0/24
+
+# Service enumeration
+nmap -sC -sV 192.168.20.10
+
+# Vulnerability scanning
+nessus_cli scan create --targets 192.168.20.0/24
+```
+
+## Advanced Configurations
+
+### Container Security Testing
+
+```bash
+# Docker security lab
+docker run -d --name vulnerable-container \
+  --security-opt seccomp=unconfined \
+  --security-opt apparmor=unconfined \
+  --cap-add=ALL \
+  alpine:latest sleep 3600
+```
+
+### Cloud Security Testing
+
+Set up AWS/Azure free tier accounts for cloud security practice:
+
+```bash
+# AWS CLI configuration
+aws configure
+aws s3 ls --profile lab-account
+
+# Azure CLI
+az login
+az vm list --output table
+```
+
+## Automation and Orchestration
+
+### Ansible Playbooks
+
+Automate VM deployment:
+
+```yaml
+# ansible-playbook.yml
+---
+- hosts: all
+  tasks:
+    - name: Install security tools
+      apt:
+        name: 
+          - nmap
+          - nikto
+          - sqlmap
+        state: present
+```
+
+### Terraform Infrastructure
+
+```hcl
+# main.tf
+resource "vsphere_virtual_machine" "kali_vm" {
+  name             = "kali-linux"
+  resource_pool_id = data.vsphere_resource_pool.pool.id
+  datastore_id     = data.vsphere_datastore.datastore.id
+  
+  num_cpus = 4
+  memory   = 8192
+  
+  guest_id = "debian10_64Guest"
+  
+  # Additional configuration...
+}
+```
+
+## Maintenance and Updates
+
+### Regular Tasks
+
+```bash
+#!/bin/bash
+# lab-maintenance.sh
+
+# Update Kali Linux
+sudo apt update && sudo apt upgrade -y
+
+# Update Windows systems
+# Use Windows Update or WSUS
+
+# Backup VM snapshots
+# Script for automated snapshot creation
+
+# Security tool updates
+sudo msfupdate
+nuclei -update-templates
+```
+
+## Cost Optimization
+
+### Free Resources
+
+- **Vulnhub**: Free vulnerable VMs
+- **TryHackMe**: Guided learning paths
+- **HackTheBox**: Community challenges
+- **SANS Cyber Aces**: Free tutorials
+
+### Budget-Friendly Hardware
+
+- **Used Enterprise Hardware**: eBay for servers
+- **Mini PCs**: Intel NUC, Raspberry Pi 4
+- **Cloud Credits**: AWS/Azure/GCP free tiers
+
+## Conclusion
+
+Building a home lab is an investment in your cybersecurity career. Start small and expand gradually:
+
+1. **Begin with basic virtualization**
+2. **Add vulnerable applications**
+3. **Implement monitoring**
+4. **Practice real-world scenarios**
+5. **Document everything**
+
+The key is consistent practice and continuous learning. Your home lab will become your most valuable learning tool.
+
+---
+
+*What's in your home lab setup? Share your configurations and lessons learned!*
