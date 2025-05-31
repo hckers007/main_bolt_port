@@ -1,14 +1,11 @@
-'use client';
-
-import { getAllContent } from '@/lib/mdx';
+import { getPosts } from '@/lib/mdx';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, ArrowRight, Search, TagIcon } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 
 export default function BlogIndex() {
-  const posts = getAllContent('blog');
+  const posts = getPosts();
 
   return (
     <div className="max-w-5xl mx-auto space-y-16">
@@ -25,16 +22,16 @@ export default function BlogIndex() {
 
       <section>
         <div className="space-y-8">
-          {posts.map((post: any) => (
+          {posts.map((post) => (
             <article
               key={post.slug}
               className="group relative flex flex-col md:flex-row gap-6 bg-card rounded-lg overflow-hidden transition-all duration-300 hover:bg-card/80 border border-border hover:border-primary"
             >
-              {post.coverImage && (
+              {post.frontmatter.coverImage && (
                 <div className="relative md:w-1/3">
                   <img
-                    src={post.coverImage}
-                    alt={post.title}
+                    src={post.frontmatter.coverImage}
+                    alt={post.frontmatter.title}
                     className="w-full aspect-[4/3] object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
@@ -44,16 +41,16 @@ export default function BlogIndex() {
                 <div className="flex flex-wrap items-center gap-3 mb-3">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar size={12} />
-                    <span>{post.date}</span>
+                    <span>{post.frontmatter.date}</span>
                   </div>
                 </div>
                 
-                <h2 className="text-xl font-heading font-bold mb-2">{post.title}</h2>
-                <p className="text-muted-foreground mb-4">{post.excerpt}</p>
+                <h2 className="text-xl font-heading font-bold mb-2">{post.frontmatter.title}</h2>
+                <p className="text-muted-foreground mb-4">{post.frontmatter.excerpt}</p>
                 
-                {post.tags && (
+                {post.frontmatter.tags && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {post.tags.map((tag: string, i: number) => (
+                    {post.frontmatter.tags.map((tag: string, i: number) => (
                       <Badge key={i} variant="outline" className="text-xs">
                         {tag}
                       </Badge>
