@@ -1,11 +1,11 @@
-import { getPosts } from '@/lib/mdx';
+import * as mdx from '@/lib/mdx';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, ArrowRight } from 'lucide-react';
 
 export default function BlogIndex() {
-  const posts = getPosts();
+  const posts = mdx.getPosts();
 
   return (
     <div className="max-w-5xl mx-auto space-y-16">

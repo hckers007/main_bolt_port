@@ -1,16 +1,16 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { getPosts, getPost } from '@/lib/mdx';
+import * as mdx from '@/lib/mdx';
 
 export async function generateStaticParams() {
-  const posts = getPosts();
+  const posts = mdx.getPosts();
   return posts.map((post) => ({
     slug: post.slug,
   }));
 }
 
 export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const post = getPost(params.slug);
+  const post = mdx.getPost(params.slug);
   
   if (!post) {
     notFound();
